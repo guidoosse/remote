@@ -1,0 +1,64 @@
+name: calisthenics
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: calisthenics-tracker
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    image: calisthenics-backend:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      JWT_SECRET: ${JWT_SECRET}
+      SPORTS_CREDENTIALS_SECRET: ${SPORTS_CREDENTIALS_SECRET}
+      CORS_ALLOWED_HOSTS: ${CORS_ALLOWED_HOSTS}
+      MONGODB_URI: mongodb://mongo:27017/calisthenics-tracker
+      USE_MEMORY_DB: "false"
+      MONGO_CONNECT_RETRIES: "20"
+      MONGO_RETRY_DELAY_MS: "2000"
+      GARMIN_EMAIL: ${GARMIN_EMAIL:-}
+      GARMIN_PASSWORD: ${GARMIN_PASSWORD:-}
+      SPORTS_PROJECT_ROOT: ${SPORTS_PROJECT_ROOT:-/sports}
+      SPORTS_GOALS_FILE: ${SPORTS_GOALS_FILE:-}
+      SPORTS_SYNC_PAGE_SIZE: ${SPORTS_SYNC_PAGE_SIZE:-100}
+      SPORTS_SYNC_MAX_ACTIVITIES: ${SPORTS_SYNC_MAX_ACTIVITIES:-2000}
+      SPORTS_UPLOAD_MAX_MB: ${SPORTS_UPLOAD_MAX_MB:-25}
+      SPORTS_ENV_FILE: ${SPORTS_ENV_FILE:-/sports/.env}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      AZURE_OPENAI_MODEL: ${AZURE_OPENAI_MODEL:-}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-05-01-preview}
+      AZURE_OPENAI_API_VERSIONS: ${AZURE_OPENAI_API_VERSIONS:-}
+      AZURE_FOUNDRY_API_VERSION: ${AZURE_FOUNDRY_API_VERSION:-2024-05-01-preview}
+      AZURE_FOUNDRY_API_VERSIONS: ${AZURE_FOUNDRY_API_VERSIONS:-2024-05-01-preview,2024-08-01-preview,2024-10-21,2025-04-14}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    image: calisthenics-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:

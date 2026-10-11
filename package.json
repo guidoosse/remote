@@ -1,0 +1,18 @@
+{
+  "name": "calisthenics-tracker",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev -- --host 0.0.0.0",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:start": "docker compose start",
+    "docker:stop": "docker compose stop",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

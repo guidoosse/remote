@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Day Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main-panel">
+        <header class="topbar" id="topbar" hidden>
+          <div class="topbar-brand">Day Tracker</div>
+          <nav class="top-nav-menu" aria-label="Primary navigation">
+            <button class="nav-button top-nav-button active" data-view="dashboard" type="button">Dashboard</button>
+            <button class="nav-button top-nav-button" data-view="workouts" type="button">Workouts</button>
+            <button class="nav-button top-nav-button" data-view="dog" type="button">Dog Training</button>
+            <button class="nav-button top-nav-button" data-view="journal" type="button">Journal</button>
+            <button class="nav-button top-nav-button" data-view="sports" type="button">Sports</button>
+            <button class="nav-button top-nav-button" data-view="race-reviews" type="button">Race Reviews</button>
+            <button class="nav-button top-nav-button" data-view="admin" type="button">Admin</button>
+            <button class="nav-button top-nav-button" data-view="profile" type="button">Profile</button>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark theme" title="Toggle dark mode">
+              ☾
+            </button>
+            <button id="logout-button" class="logout-button" type="button" title="Logout">Logout</button>
+          </nav>
+        </header>
+
+        <section id="auth-view" class="auth-view card">
+          <div class="auth-grid">
+            <div class="auth-panel">
+              <h2>Sign in</h2>
+              <form id="login-form">
+                <label>
+                  Username
+                  <input id="login-username" type="text" required />
+                </label>
+                <label>
+                  Password
+                  <input id="login-password" type="password" required />
+                </label>
+                <label>
+                  MFA code (optional if MFA is enabled)
+                  <input id="login-otp" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+                </label>
+                <button type="submit" class="primary">Login</button>
+              </form>
+            </div>
+
+            <div class="auth-panel">
+              <h2>Create account</h2>
+              <p id="register-status" class="meta">Create your account if registration is open.</p>
+              <form id="register-form">
+                <label>
+                  Username
+                  <input id="register-username" type="text" required />
+                </label>
+                <label>
+                  Password
+                  <input id="register-password" type="password" required />
+                </label>
+                <label>
+                  First name
+                  <input id="register-first-name" type="text" />
+                </label>
+                <button type="submit" class="secondary">Register</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section id="dashboard-view" class="page-view hidden">
+          <div class="dashboard-grid">
+            <div class="card">
+              <div class="list-header compact">
+                <h2>Daily overview</h2>
+              </div>
+              <p class="meta">Quick stats across modules. Click a card to open its page.</p>
+              <div id="module-status-list" class="admin-list"></div>
+            </div>
+
+            <div class="card">
+              <div class="list-header compact">
+                <h2>Next actions</h2>
+              </div>
+              <p class="meta">GTD-style tasks with owner, deadline, and quick journal links.</p>
+              <div id="dashboard-summary" class="dashboard-summary"></div>
+              <div class="dashboard-action-bar">
+                <button type="button" id="toggle-dashboard-task-form" class="secondary" aria-expanded="false" aria-controls="task-form">Add next action</button>
+              </div>
+              <div id="dashboard-task-list" class="admin-list"></div>
+              <form id="task-form" class="task-form hidden">
+                <div class="form-row">
+                  <label>
+                    Title
+                    <input id="task-title" type="text" placeholder="Reply to client" required />
+                  </label>
+                  <label>
+                    Category
+                    <input id="task-category" type="text" value="General" />
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label>
+                    Owner
+                    <input id="task-owner" type="text" value="@me" />
+                  </label>
+                  <label>
+                    Deadline
+                    <input id="task-deadline" type="date" />
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label>
+                    Status
+                    <select id="task-status">
+                      <option value="Next Action">Next Action</option>
+                      <option value="Waiting">Waiting</option>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="Someday">Someday</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </label>
+                  <label>
+                    Journal label
+                    <input id="task-journal-label" type="text" value="Journal" />
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label>
+                    Journal category
+                    <select id="task-journal-category">
+                      <option value="Professional">Professional</option>
+                      <option value="Private">Private</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row single">
+                  <label>
+                    Subtasks
+                    <textarea id="task-subtasks" placeholder="- Draft note&#10;- Send follow-up"></textarea>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="primary">Save task</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section id="workouts-view" class="page-view hidden">
+          <div class="card">
+            <div class="list-header compact">
+              <h2>Log workout</h2>
+              <div class="workout-header-actions">
+                <button type="button" id="toggle-workout-form" class="ghost" aria-expanded="false" aria-controls="workout-form">Show add workout form</button>
+                <div class="segment-control" aria-label="Workout filter">
+                  <button type="button" class="segment-button active" data-filter="all">All</button>
+                  <button type="button" class="segment-button" data-filter="today">Today</button>
+                </div>
+              </div>
+            </div>
+            <form id="workout-form" class="hidden">
+              <div class="form-row">
+                <label>
+                  Date
+                  <input id="workout-date" type="date" required />
+                </label>
+                <label>
+                  Workout name
+                  <input id="workout-name" type="text" placeholder="Upper body / Full body" required />
+                </label>
+              </div>
+
+              <div class="form-row single">
+                <label>
+                  Notes
+                  <textarea id="workout-notes" placeholder="How did the workout feel?"></textarea>
+                </label>
+              </div>
+
+              <div class="divider">Exercises</div>
+              <div id="exercise-list"></div>
+
+              <div class="actions">
+                <button type="button" id="add-exercise" class="secondary">+ Add exercise</button>
+                <button type="submit" class="primary">Save workout</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="list-header">
+              <h2>Workout history</h2>
+              <button type="button" id="refresh-button" class="ghost">Refresh</button>
+            </div>
+            <div id="workout-list" class="workout-list"></div>
+          </div>
+        </section>
+
+        <section id="dog-view" class="page-view hidden">
+          <div class="card">
+            <div class="list-header compact">
+              <h2>Dog training</h2>
+              <div class="workout-header-actions">
+                <button type="button" id="toggle-dog-workout-form" class="ghost" aria-expanded="false" aria-controls="dog-workout-form">Show add session form</button>
+                <button type="button" id="refresh-dog-button" class="ghost">Refresh</button>
+              </div>
+            </div>
+            <form id="dog-workout-form" class="hidden">
+              <div class="form-row">
+                <label>
+                  Dog
+                  <select id="dog-select" required></select>
+                </label>
+                <label>
+                  Date
+                  <input id="dog-workout-date" type="date" required />
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label>
+                  Session name
+                  <input id="dog-workout-name" type="text" placeholder="Obedience basics" required />
+                </label>
+                <label>
+                  Notes
+                  <input id="dog-workout-notes" type="text" placeholder="What improved today?" />
+                </label>
+              </div>
+
+              <div class="divider">Dog exercises</div>
+              <div id="dog-exercise-list"></div>
+
+              <div class="actions">
+                <button type="button" id="add-dog-exercise" class="secondary">+ Add dog exercise</button>
+                <button type="submit" class="primary">Save dog session</button>
+              </div>
+            </form>
+
+            <div class="list-header top-gap">
+              <h2>Dog session history</h2>
+            </div>
+            <div id="dog-workout-list" class="workout-list"></div>
+          </div>
+
+          <div class="card">
+            <h2>Dogs</h2>
+            <form id="dog-form">
+              <div class="form-row">
+                <label>
+                  Dog name
+                  <input id="dog-name" type="text" placeholder="Luna" required />
+                </label>
+                <label>
+                  Breed
+                  <input id="dog-breed" type="text" placeholder="Border Collie" />
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  Birth year
+                  <input id="dog-birth-year" type="number" min="1990" max="2100" placeholder="2021" />
+                </label>
+                <label>
+                  Notes
+                  <input id="dog-notes" type="text" placeholder="Reactive to bikes" />
+                </label>
+              </div>
+              <div class="actions">
+                <button type="submit" class="primary">Add dog</button>
+              </div>
+            </form>
+            <div id="dog-list" class="admin-list"></div>
+          </div>
+        </section>
+
+        <section id="journal-view" class="page-view hidden journal-page">
+          <div id="journal-modal" class="journal-modal hidden" aria-hidden="true">
+            <div class="journal-modal-panel" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
+              <div class="journal-modal-header">
+                <h2 id="journal-modal-title">New journal entry</h2>
+                <button type="button" id="journal-modal-close" class="ghost small" aria-label="Close journal editor">Close</button>
+              </div>
+              <form id="journal-modal-form" class="journal-form modal-form">
+                <div class="form-row">
+                  <label>
+                    Title
+                    <input id="journal-modal-title-input" type="text" placeholder="How did today go?" required />
+                  </label>
+                  <label>
+                    Category
+                    <select id="journal-category">
+                      <option value="Professional">Professional</option>
+                      <option value="Private">Private</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row single">
+                  <label>
+                    Entry
+                    <textarea id="journal-modal-description" placeholder="Write down wins, blockers, or notes..."></textarea>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button type="button" id="journal-modal-delete" class="remove-btn hidden">Delete</button>
+                  <button type="button" id="journal-modal-cancel" class="ghost">Cancel</button>
+                  <button type="submit" class="primary" id="journal-modal-save">Save entry</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="journal-layout">
+            <div class="card journal-card journal-list-card">
+              <div class="list-header compact journal-header">
+                <h2>Journal</h2>
+                <div class="journal-header-actions">
+                  <div class="segment-control" aria-label="Journal status filter">
+                    <button type="button" class="segment-button journal-segment-button active" data-journal-filter="all">All</button>
+                    <button type="button" class="segment-button journal-segment-button" data-journal-filter="unreported">Unreported</button>
+                    <button type="button" class="segment-button journal-segment-button" data-journal-filter="reported">Reported</button>
+                  </div>
+                  <div class="segment-control" aria-label="Journal category filter">
+                    <button type="button" class="segment-button journal-category-filter-button active" data-journal-category-filter="all">All</button>
+                    <button type="button" class="segment-button journal-category-filter-button" data-journal-category-filter="Professional">Professional</button>
+                    <button type="button" class="segment-button journal-category-filter-button" data-journal-category-filter="Private">Private</button>
+                  </div>
+                  <button type="button" id="refresh-journal-button" class="ghost">Refresh</button>
+                  <button type="button" id="journal-new-entry-button" class="ghost icon-button" aria-label="Create new journal entry" title="Create new journal entry">＋</button>
+                </div>
+              </div>
+              <div id="journal-list" class="journal-list"></div>
+            </div>
+
+            <div class="card journal-card journal-tasks-card">
+              <div class="list-header compact">
+                <h2>Next actions</h2>
+              </div>
+              <p class="meta">Task items that can be copied into your journal.</p>
+              <form id="journal-task-form" class="task-form compact-task-form">
+                <div class="form-row">
+                  <label>
+                    Title
+                    <input id="journal-task-title" type="text" placeholder="Capture next action" required />
+                  </label>
+                  <label>
+                    Status
+                    <select id="journal-task-status">
+                      <option value="Next Action">Next Action</option>
+                      <option value="Waiting">Waiting</option>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="Someday">Someday</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="primary">Add action</button>
+                </div>
+              </form>
+              <div id="journal-task-list" class="admin-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="sports-view" class="page-view hidden">
+          <div class="card">
+            <div class="list-header compact">
+              <h2>Sports analytics</h2>
+              <div class="workout-header-actions">
+                <button type="button" id="sync-sports-latest-button" class="ghost">Sync latest</button>
+                <button type="button" id="sync-sports-full-button" class="ghost">Full sync</button>
+                <button type="button" id="sports-ai-advice-button" class="ghost">Generate AI advice</button>
+                <button type="button" id="refresh-sports-button" class="ghost">Refresh</button>
+              </div>
+            </div>
+            <p id="sports-status" class="meta">Enable the sports module and configure Garmin credentials to fetch the latest training summary.</p>
+            <div id="sports-summary" class="dashboard-summary"></div>
+            <div id="sports-ai-insight" class="sports-insight hidden"></div>
+            <div class="divider">Upcoming marathon target</div>
+            <p class="meta">Set your next race (for example Antwerp Marathon next week) to score your current training block and match it with prior marathon campaigns.</p>
+            <form id="sports-target-event-form">
+              <div class="form-row">
+                <label>
+                  Event name
+                  <input id="sports-target-event-name" type="text" placeholder="Antwerp Marathon" />
+                </label>
+                <label>
+                  Event date
+                  <input id="sports-target-event-date" type="date" />
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  Distance (km)
+                  <input id="sports-target-event-distance-km" type="number" min="0.1" step="0.1" placeholder="42.195" />
+                </label>
+                <label>
+                  Target time (HH:MM:SS)
+                  <input
+                    id="sports-target-event-target-time"
+                    type="text"
+                    pattern="\d{1,2}:\d{2}:\d{2}"
+                    inputmode="numeric"
+                    title="Use HH:MM:SS format, for example 03:55:00"
+                    placeholder="03:45:00"
+                  />
+                </label>
+              </div>
+              <div class="actions">
+                <button type="submit" class="primary">Save target event</button>
+                <button id="sports-target-event-clear" type="button" class="ghost">Clear target event</button>
+              </div>
+            </form>
+            <div class="divider">Analysis dashboards</div>
+            <div id="sports-analysis-panels" class="admin-list"></div>
+            <div class="divider">Marathons & custom workout imports</div>
+            <p class="meta">Upload FIT/TCX/GPX files to enrich split/HR analysis for each marathon.</p>
+            <div id="sports-marathons" class="admin-list"></div>
+          </div>
+        </section>
+
+        <section id="race-reviews-view" class="page-view hidden">
+          <div class="card">
+            <div class="list-header compact">
+              <h2>Marathon race reviews</h2>
+              <div class="workout-header-actions">
+                <button type="button" id="refresh-race-reviews-button" class="ghost">Refresh reviews</button>
+              </div>
+            </div>
+            <p id="race-reviews-status" class="meta">Upload FIT/TCX/GPX on each marathon in Sports to generate race-level coach reviews.</p>
+            <div id="race-reviews-list" class="admin-list"></div>
+          </div>
+        </section>
+
+        <section id="admin-view" class="page-view hidden">
+          <div class="admin-grid">
+            <div class="card">
+              <h2>User access</h2>
+              <label class="checkbox-wrap inline" style="margin-bottom:0.8rem;">
+                <input id="admin-registration-enabled" type="checkbox" />
+                Allow self-registration on login page
+              </label>
+              <p id="admin-registration-status" class="meta">Only administrators can change this setting.</p>
+              <div id="admin-audit-list" class="admin-list"></div>
+              <form id="user-admin-form">
+                <div class="form-row">
+                  <label>
+                    Username
+                    <input id="user-admin-username" type="text" placeholder="new-user" required />
+                  </label>
+                  <label>
+                    Password
+                    <input id="user-admin-password" type="password" placeholder="Secure password" required />
+                  </label>
+                </div>
+
+                <div class="form-row">
+                  <label>
+                    First name
+                    <input id="user-admin-first-name" type="text" />
+                  </label>
+                  <label>
+                    Last name
+                    <input id="user-admin-last-name" type="text" />
+                  </label>
+                </div>
+
+                <div class="form-row">
+                  <label>
+                    Email
+                    <input id="user-admin-email" type="email" />
+                  </label>
+                  <label>
+                    Goal
+                    <input id="user-admin-goal" type="text" placeholder="Build strength" />
+                  </label>
+                </div>
+
+                <div class="checkbox-row">
+                  <label class="checkbox-wrap inline">
+                    <input id="user-admin-workouts" type="checkbox" checked />
+                    Calisthenics access
+                  </label>
+                  <label class="checkbox-wrap inline">
+                    <input id="user-admin-dog" type="checkbox" />
+                    Dog training access
+                  </label>
+                  <label class="checkbox-wrap inline">
+                    <input id="user-admin-journal" type="checkbox" />
+                    Journal access
+                  </label>
+                  <label class="checkbox-wrap inline">
+                    <input id="user-admin-sports" type="checkbox" />
+                    Sports access
+                  </label>
+                  <label class="checkbox-wrap inline">
+                    <input id="user-admin-admin" type="checkbox" />
+                    Administrator
+                  </label>
+                </div>
+
+                <div class="actions">
+                  <button type="submit" class="primary">Create user</button>
+                </div>
+              </form>
+              <div id="user-admin-list" class="admin-list"></div>
+            </div>
+
+            <div class="card">
+              <h2>Exercise library</h2>
+              <form id="exercise-admin-form">
+                <div class="form-row">
+                  <label>
+                    Exercise name
+                    <input id="exercise-name" type="text" placeholder="Crunch" required />
+                  </label>
+                  <label>
+                    Category
+                    <select id="exercise-category">
+                      <option value="push">Push</option>
+                      <option value="pull">Pull</option>
+                      <option value="legs">Legs</option>
+                      <option value="core">Core</option>
+                      <option value="general">General</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="checkbox-row">
+                  <label class="checkbox-wrap inline">
+                    <input id="exercise-bodyweight" type="checkbox" checked />
+                    Bodyweight
+                  </label>
+                </div>
+
+                <div class="actions">
+                  <button type="submit" class="primary">Add exercise</button>
+                </div>
+              </form>
+              <div id="exercise-admin-list" class="admin-list"></div>
+            </div>
+
+            <div class="card">
+              <h2>Dog exercise library</h2>
+              <form id="dog-exercise-admin-form">
+                <div class="form-row">
+                  <label>
+                    Exercise name
+                    <input id="dog-exercise-name" type="text" placeholder="Recall drill" required />
+                  </label>
+                  <label>
+                    Category
+                    <select id="dog-exercise-category">
+                      <option value="obedience">Obedience</option>
+                      <option value="focus">Focus</option>
+                      <option value="agility">Agility</option>
+                      <option value="trick">Trick</option>
+                      <option value="general">General</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="actions">
+                  <button type="submit" class="primary">Add dog exercise</button>
+                </div>
+              </form>
+              <div id="dog-exercise-admin-list" class="admin-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="profile-view" class="page-view hidden">
+          <div class="card">
+            <h2>Profile</h2>
+            <form id="profile-form">
+              <div class="form-row">
+                <label>
+                  First name
+                  <input id="profile-first-name" type="text" />
+                </label>
+                <label>
+                  Last name
+                  <input id="profile-last-name" type="text" />
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label>
+                  Email
+                  <input id="profile-email" type="email" />
+                </label>
+                <label>
+                  Fitness goal
+                  <input id="profile-goal" type="text" placeholder="Build strength / gain muscle / lose fat" />
+                </label>
+              </div>
+
+              <div class="checkbox-row">
+                <label class="checkbox-wrap inline">
+                  <input id="profile-workouts-enabled" type="checkbox" />
+                  Enable calisthenics tracker for this account
+                </label>
+                <label class="checkbox-wrap inline">
+                  <input id="profile-dog-enabled" type="checkbox" />
+                  Enable dog training tracker for this account
+                </label>
+                <label class="checkbox-wrap inline">
+                  <input id="profile-journal-enabled" type="checkbox" />
+                  Enable journal tracker for this account
+                </label>
+                <label class="checkbox-wrap inline">
+                  <input id="profile-sports-enabled" type="checkbox" />
+                  Enable sports analytics for this account
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  Garmin email
+                  <input id="profile-garmin-email" type="email" autocomplete="username" placeholder="you@example.com" />
+                </label>
+                <label>
+                  Garmin password
+                  <input id="profile-garmin-password" type="password" autocomplete="new-password" placeholder="Leave blank to keep existing" />
+                </label>
+              </div>
+              <label class="checkbox-wrap inline">
+                <input id="profile-clear-garmin-password" type="checkbox" />
+                Clear saved Garmin password
+              </label>
+              <p class="meta">Garmin credentials are stored encrypted and used for Sports sync.</p>
+              <div id="profile-sports-connection-status" class="dashboard-summary"></div>
+              <p id="profile-role-label" class="meta"></p>
+
+              <div class="actions">
+                <button type="submit" class="primary">Save profile</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Security</h2>
+            <p id="mfa-status" class="meta">MFA is disabled.</p>
+            <div class="mfa-box">
+              <button id="setup-mfa-button" type="button" class="primary">Set up MFA</button>
+              <button id="disable-mfa-button" type="button" class="ghost">Disable MFA</button>
+            </div>
+
+            <div id="mfa-setup-panel" class="mfa-panel hidden">
+              <p class="meta">Scan this code in your authenticator app, then enter the 6-digit code to confirm.</p>
+              <div id="mfa-qr" class="mfa-qr"></div>
+              <label>
+                One-time code
+                <input id="mfa-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+              </label>
+              <div class="actions">
+                <button id="verify-mfa-button" type="button" class="primary">Verify MFA</button>
+              </div>
+            </div>
+
+            <div id="mfa-disable-panel" class="mfa-panel hidden">
+              <label>
+                Current MFA code
+                <input id="mfa-disable-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+              </label>
+              <div class="actions">
+                <button id="confirm-disable-mfa-button" type="button" class="secondary">Disable MFA</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="edit-modal" class="journal-modal hidden" aria-hidden="true">
+      <div class="journal-modal-panel" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+        <div class="journal-modal-header">
+          <h2 id="edit-modal-title">Edit item</h2>
+          <button type="button" id="edit-modal-close" class="ghost small" aria-label="Close editor">Close</button>
+        </div>
+        <form id="edit-modal-form" class="journal-form modal-form">
+          <div id="edit-modal-fields"></div>
+          <p id="edit-modal-error" class="meta hidden" role="alert" aria-live="polite"></p>
+          <div class="actions">
+            <button type="button" id="edit-modal-cancel" class="ghost">Cancel</button>
+            <button type="submit" class="primary" id="edit-modal-save">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
