@@ -80,63 +80,63 @@ function normalizeHost(value) {
   } catch (error) {
     return value.split(':')[0].toLowerCase();
   }
+}
 
-  function validateProductionConfiguration() {
-    if (NODE_ENV !== 'production') return;
+function validateProductionConfiguration() {
+  if (NODE_ENV !== 'production') return;
 
-    const failures = [];
-    if (WEAK_SECRETS.has(String(JWT_SECRET).trim().toLowerCase()) || String(JWT_SECRET).trim().length < 32) {
-      failures.push('JWT_SECRET must be set to a strong value (min 32 chars) in production.');
-    }
+  const failures = [];
+  if (WEAK_SECRETS.has(String(JWT_SECRET).trim().toLowerCase()) || String(JWT_SECRET).trim().length < 32) {
+    failures.push('JWT_SECRET must be set to a strong value (min 32 chars) in production.');
+  }
+  if (
+    WEAK_SECRETS.has(String(SPORTS_CREDENTIALS_SECRET).trim().toLowerCase())
+    || String(SPORTS_CREDENTIALS_SECRET).trim().length < 32
+  ) {
+    failures.push('SPORTS_CREDENTIALS_SECRET must be set to a strong value (min 32 chars) in production.');
+  }
+  if (!CORS_ALLOWED_HOSTS.length || CORS_ALLOWED_HOSTS.includes('localhost') || CORS_ALLOWED_HOSTS.includes('127.0.0.1')) {
+    failures.push('CORS_ALLOWED_HOSTS must be restricted to your public host names in production.');
+  }
 
-    async function isRegistrationEnabled() {
-      const userCount = await User.countDocuments({});
-      if (userCount === 0) {
-        return { enabled: true, userCount };
-      }
+  if (failures.length) {
+    throw new Error(`Production configuration invalid: ${failures.join(' ')}`);
+  }
+}
 
-      const setting = await AppSetting.findOne({ key: APP_SETTING_REGISTRATION_ENABLED }).lean();
-      if (!setting || typeof setting.bool_value !== 'boolean') {
-        return { enabled: true, userCount };
-      }
-      return { enabled: Boolean(setting.bool_value), userCount };
-    }
+async function isRegistrationEnabled() {
+  const userCount = await User.countDocuments({});
+  if (userCount === 0) {
+    return { enabled: true, userCount };
+  }
 
-    async function setRegistrationEnabled(enabled) {
-      const setting = await AppSetting.findOneAndUpdate(
-        { key: APP_SETTING_REGISTRATION_ENABLED },
-        { $set: { bool_value: Boolean(enabled) } },
-        { new: true, upsert: true, setDefaultsOnInsert: true },
-      ).lean();
-      return Boolean(setting?.bool_value);
-    }
+  const setting = await AppSetting.findOne({ key: APP_SETTING_REGISTRATION_ENABLED }).lean();
+  if (!setting || typeof setting.bool_value !== 'boolean') {
+    return { enabled: true, userCount };
+  }
+  return { enabled: Boolean(setting.bool_value), userCount };
+}
 
-    async function appendAdminAuditLog({ actorUserId, action, targetUserId = null, details = null }) {
-      try {
-        if (!actorUserId || !action) return;
-        await AdminAuditLog.create({
-          actor_user_id: new mongoose.Types.ObjectId(actorUserId),
-          action: String(action),
-          target_user_id: targetUserId ? new mongoose.Types.ObjectId(targetUserId) : null,
-          details: details || null,
-        });
-      } catch (error) {
-        console.error(`Failed to persist admin audit log for action "${action}": ${error.message}`);
-      }
-    }
-    if (
-      WEAK_SECRETS.has(String(SPORTS_CREDENTIALS_SECRET).trim().toLowerCase())
-      || String(SPORTS_CREDENTIALS_SECRET).trim().length < 32
-    ) {
-      failures.push('SPORTS_CREDENTIALS_SECRET must be set to a strong value (min 32 chars) in production.');
-    }
-    if (!CORS_ALLOWED_HOSTS.length || CORS_ALLOWED_HOSTS.includes('localhost') || CORS_ALLOWED_HOSTS.includes('127.0.0.1')) {
-      failures.push('CORS_ALLOWED_HOSTS must be restricted to your public host names in production.');
-    }
+async function setRegistrationEnabled(enabled) {
+  const setting = await AppSetting.findOneAndUpdate(
+    { key: APP_SETTING_REGISTRATION_ENABLED },
+    { $set: { bool_value: Boolean(enabled) } },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  ).lean();
+  return Boolean(setting?.bool_value);
+}
 
-    if (failures.length) {
-      throw new Error(`Production configuration invalid: ${failures.join(' ')}`);
-    }
+async function appendAdminAuditLog({ actorUserId, action, targetUserId = null, details = null }) {
+  try {
+    if (!actorUserId || !action) return;
+    await AdminAuditLog.create({
+      actor_user_id: new mongoose.Types.ObjectId(actorUserId),
+      action: String(action),
+      target_user_id: targetUserId ? new mongoose.Types.ObjectId(targetUserId) : null,
+      details: details || null,
+    });
+  } catch (error) {
+    console.error(`Failed to persist admin audit log for action "${action}": ${error.message}`);
   }
 }
 
