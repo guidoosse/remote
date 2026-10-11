@@ -18,7 +18,8 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     image: calisthenics-backend:latest
     container_name: calisthenics-backend
     restart: unless-stopped
@@ -52,7 +53,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
     image: calisthenics-frontend:latest
     container_name: calisthenics-frontend
     restart: unless-stopped
