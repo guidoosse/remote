@@ -17,7 +17,8 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
     image: calisthenics-backend:latest
     restart: unless-stopped
     environment:
@@ -52,7 +53,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
     image: calisthenics-frontend:latest
     restart: unless-stopped
     ports:
