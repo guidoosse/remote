@@ -19,7 +19,6 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    image: calisthenics-backend:latest
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -55,7 +54,6 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    image: calisthenics-frontend:latest
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-5173}:80"
